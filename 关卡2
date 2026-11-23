@@ -1,0 +1,37 @@
+## 1. 代码 & 配置说明
+
+### ① 环境信息
+
+- ROS 版本：Noetic
+- 飞控仿真：PX4 SITL + Gazebo
+- 通信：Mavros，话题 `/mavros/setpoint_raw/local`（`mavros_msgs/PositionTarget`）
+- 功能包：`template`
+- 编译命令：
+
+```
+catkin_make
+source devel/setup.bash
+```
+
+- 启动顺序：
+  1. 启动 PX4 SITL 仿真
+  2. 启动 mavros 节点
+  3. 启动 template 控制节点
+- 参数清单
+  - 画圆半径 r = 1.5 m
+  - 角速度 omega = 2π/6 rad/s → 绕一圈 6 秒
+  - 最大跟踪速度 max_vel = 1.6 m/s
+  - 位置到达判定阈值（xy、z）
+
+### ② 修改位置清单
+
+1. 在`case3`画圆分支：实现**基于速度的圆周轨迹生成**
+   - 公式：\(v_x = -\omega r \sin\theta,\ v_y=\omega r\cos\theta\)
+   - 增加位置误差反馈项 \(v_x=v_{tan\_x}+vel\_k\cdot e_x\)，做 P 校正，抑制轨迹偏差
+   - 配置`PositionTarget.type_mask`：`IGNORE_PX|IGNORE_PY|IGNORE_PZ|IGNORE_VZ|IGNORE_YAW`，**只启用 vx、vy 水平速度控制**
+2. 增加速度限幅：用`max_vel`钳制合速度，防止超速
+3. 状态机逻辑：起飞→前往悬停等待点→到达后切换画圆状态→theta 走完一圈（`theta>2π`）退出画圆→悬停→降落
+4. 到达判定增加防抖 flag，防止反复触发到达判断
+
+> 
+> 源码见下一个文档
