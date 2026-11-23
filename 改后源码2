@@ -1,3 +1,5 @@
+##cpp
+
 #include <template.h>
 #define _USE_MATH_DEFINES
 #include <cmath>
@@ -259,4 +261,8 @@ int main(int argc, char **argv)
   }
   return 0;
 }
-
+##yaml
+err_max: 0.15
+if_debug: 1
+vel_k: 0.5
+max_vel: 1.6
